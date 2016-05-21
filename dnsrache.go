@@ -1,8 +1,8 @@
-// Package dnscache caches DNS reverse lookups
+// Package dnsrcache caches DNS reverse lookups
 package dnsrcache
 
 import (
-	"log"
+	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -13,12 +13,14 @@ type fqdns struct {
 	expires time.Time
 }
 
+// DNSCache is Cache struct
 type DNSCache struct {
 	sync.RWMutex
 	defaultTTL time.Duration
 	cache      map[string]*fqdns
 }
 
+// NewDNSCache : New DNSCache struct with TTL (if TTL <= 0, cache isn't clear)
 func NewDNSCache(defaultTTL time.Duration) *DNSCache {
 	dcache := &DNSCache{
 		defaultTTL: defaultTTL,
@@ -30,16 +32,16 @@ func NewDNSCache(defaultTTL time.Duration) *DNSCache {
 	return dcache
 }
 
-// Set a TTL, overwriting the defaultTTL
-func (d *DNSCache) SetTTL(ttl time.Duration) {
+// SetTTL : Set a TTL, overwriting the defaultTTL
+func (d *DNSCache) SetTTL(ttl time.Duration) error {
 	if ttl > 0 {
 		d.defaultTTL = ttl
-	} else {
-		log.Println("invalid ttl. ttl wasn't set.")
+		return nil
 	}
+	return fmt.Errorf("invalid ttl. ttl wasn't set")
 }
 
-// Get all of the addresses' ips
+// Fetch : Get all of the addresses' ips
 func (d *DNSCache) Fetch(address string) ([]string, error) {
 	d.RLock()
 	value, exists := d.cache[address]
@@ -54,7 +56,7 @@ func (d *DNSCache) Fetch(address string) ([]string, error) {
 	return d.LookupAddr(address)
 }
 
-// Lookup an address' ip, circumventing the cache
+// LookupAddr : Lookup an address' ip, circumventing the cache
 func (d *DNSCache) LookupAddr(address string) ([]string, error) {
 	results, err := net.LookupAddr(address)
 	if err != nil {
@@ -71,7 +73,7 @@ func (d *DNSCache) LookupAddr(address string) ([]string, error) {
 	return results, nil
 }
 
-// Remove expired items (called automatically)
+// Refresh : Remove expired items (called automatically)
 func (d *DNSCache) Refresh() {
 	now := time.Now()
 	d.RLock()

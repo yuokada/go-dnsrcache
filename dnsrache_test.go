@@ -2,17 +2,16 @@
 package dnsrcache
 
 import (
+	"fmt"
 	"testing"
 	"time"
-	"fmt"
 )
 
 var defaultDuration = time.Duration(10 * time.Second)
-const(
-	ExampleAddr   = "127.0.0.1"
-)
 
-var addr_example_com string
+const (
+	ExampleAddr = "127.0.0.1"
+)
 
 func TestNewDNSCache(t *testing.T) {
 	s := NewDNSCache(defaultDuration)
@@ -24,14 +23,14 @@ func TestNewDNSCache(t *testing.T) {
 func TestFetchExamplecom(t *testing.T) {
 	cache := NewDNSCache(defaultDuration)
 	//a, err:=cache.Fetch(sampleIP)
-	a, err:=cache.Fetch(ExampleAddr)
+	a, err := cache.Fetch(ExampleAddr)
 	if err != nil {
 		t.Errorf("%#v\n", a)
 	}
 }
 
 func TestDNSCache_AutoRefresh(t *testing.T) {
-	cache  := NewDNSCache(defaultDuration)
+	cache := NewDNSCache(defaultDuration)
 	cache.Fetch(ExampleAddr)
 
 	// sleep => cache clear.
@@ -50,7 +49,7 @@ func ExampleDNSCache_Fetch() {
 		return
 	}
 	time.Sleep(time.Duration(100 * time.Millisecond))
-	hosts,err = cache.Fetch(ExampleAddr)
+	hosts, err = cache.Fetch(ExampleAddr)
 	fmt.Println(hosts[0])
 	// Output:
 	// localhost
