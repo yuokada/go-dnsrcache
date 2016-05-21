@@ -49,7 +49,7 @@ func ExampleDNSCache_Fetch() {
 		return
 	}
 	time.Sleep(time.Duration(100 * time.Millisecond))
-	hosts, err = cache.Fetch(ExampleAddr)
+	hosts, _ = cache.Fetch(ExampleAddr)
 	fmt.Println(hosts[0])
 	// Output:
 	// localhost
