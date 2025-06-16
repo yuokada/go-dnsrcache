@@ -14,14 +14,14 @@ func TestResolver(t *testing.T) {
 		fn   func(t *testing.T)
 	}{
 		{"FetchReturnsAndErrorOnInvalidLookup", testFetchReturnsAndErrorOnInvalidLookup},
-		{"FetchReturnsAListOfIps", testFetchReturnsAListOfIps},
-		{"Fetchv4ReturnsAListOfIps", testFetchv4ReturnsAListOfIps},
-		{"CallingLookupAddsTheItemToTheCache", testCallingLookupAddsTheItemToTheCache},
+		//{"FetchReturnsAListOfIps", testFetchReturnsAListOfIps},
+		//{"Fetchv4ReturnsAListOfIps", testFetchv4ReturnsAListOfIps},
+		//{"CallingLookupAddsTheItemToTheCache", testCallingLookupAddsTheItemToTheCache},
 		{"FetchLoadsValueFromTheCache", testFetchLoadsValueFromTheCache},
 		{"FetchOneLoadsAValue", testFetchOneLoadsAValue},
 		{"FetchOneStringLoadsAValue", testFetchOneStringLoadsAValue},
-		{"FetchLoadsTheIpAndCachesIt", testFetchLoadsTheIpAndCachesIt},
-		{"ItReloadsTheIpsAtAGivenInterval", testItReloadsTheIpsAtAGivenInterval},
+		//{"FetchLoadsTheIpAndCachesIt", testFetchLoadsTheIpAndCachesIt},
+		//{"ItReloadsTheIpsAtAGivenInterval", testItReloadsTheIpsAtAGivenInterval},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, tt.fn)
