@@ -34,8 +34,8 @@ import (
 )
 
 func main() {
-    // Create a DNS cache with a default TTL of 10 seconds
-    cache := dnsrcache.NewDNSCache(10 * time.Second)
+    // Create a DNS reverse cache with a default TTL of 10 seconds
+    cache := dnsrcache.NewDNSReverseCache(10 * time.Second)
 
     // Fetch domains for an IP address
     address := "127.0.0.1"
