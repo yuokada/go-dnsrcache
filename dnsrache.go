@@ -1,5 +1,4 @@
 // Package dnsrcache caches DNS reverse lookups
-// Package dnsrcache caches DNS reverse lookups.
 package dnsrcache
 
 import (

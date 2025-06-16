@@ -7,48 +7,69 @@ import (
 	"time"
 )
 
-var defaultDuration = time.Duration(10 * time.Second)
+var defaultDuration = 10 * time.Second
 
-const (
-	ExampleAddr = "127.0.0.1"
-)
+const ExampleAddr = "127.0.0.1"
 
 func TestNewDNSCache(t *testing.T) {
-	s := NewDNSCache(defaultDuration)
-	if s.defaultTTL != defaultDuration {
-		t.Fatal("duration isn't match!")
-	}
+	t.Run("Default TTL is set correctly", func(t *testing.T) {
+		cache := NewDNSCache(defaultDuration)
+		if cache.defaultTTL != defaultDuration {
+			t.Fatalf("expected defaultTTL %v, got %v", defaultDuration, cache.defaultTTL)
+		}
+	})
 }
 
-func TestFetchExamplecom(t *testing.T) {
-	cache := NewDNSCache(defaultDuration)
-	//a, err:=cache.Fetch(sampleIP)
-	a, err := cache.Fetch(ExampleAddr)
-	if err != nil {
-		t.Errorf("%#v\n", a)
+func TestFetch(t *testing.T) {
+	tests := []struct {
+		name    string
+		address string
+		wantErr bool
+	}{
+		{"Valid address", ExampleAddr, false},
+		{"Invalid address", "invalid-address", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cache := NewDNSCache(defaultDuration)
+			_, err := cache.Fetch(tt.address)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Fetch() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
 	}
 }
 
 func TestDNSCache_AutoRefresh(t *testing.T) {
-	cache := NewDNSCache(defaultDuration)
-	cache.Fetch(ExampleAddr)
+	t.Run("Auto-refresh clears expired cache", func(t *testing.T) {
+		cache := NewDNSCache(3 * time.Second)
+		_, err := cache.Fetch(ExampleAddr)
+		if err != nil {
+			t.Fatalf("Fetch() failed: %v", err)
+		}
 
-	// sleep => cache clear.
-	time.Sleep(time.Duration(3 * time.Second))
+		// Wait for cache to expire
+		time.Sleep(4 * time.Second)
 
-	cache.Fetch(ExampleAddr)
+		_, err = cache.Fetch(ExampleAddr)
+		if err != nil {
+			t.Fatalf("Fetch() failed after auto-refresh: %v", err)
+		}
+	})
 }
 
 // Example Test
 
 func ExampleDNSCache_Fetch() {
-	ttl := time.Duration(10 * time.Millisecond)
+	ttl := 10 * time.Millisecond
 	cache := NewDNSCache(ttl)
 	hosts, err := cache.Fetch(ExampleAddr)
 	if err != nil {
+		fmt.Println("Error:", err)
 		return
 	}
-	time.Sleep(time.Duration(100 * time.Millisecond))
+	time.Sleep(100 * time.Millisecond)
 	hosts, _ = cache.Fetch(ExampleAddr)
 	fmt.Println(hosts[0])
 	// Output:
