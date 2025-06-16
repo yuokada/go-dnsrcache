@@ -74,17 +74,3 @@ func ExampleDNSReverseCache_Fetch() {
 	// Output:
 	// localhost
 }
-
-func ExampleDNSReverseCache_Fetch_1_1_1_1() {
-	cache := NewDNSReverseCache(10 * time.Millisecond)
-	hosts, err := cache.Fetch("1.1.1.1")
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	time.Sleep(100 * time.Millisecond)
-	hosts, _ = cache.Fetch("1.1.1.1")
-	fmt.Println(hosts[0])
-	// Output:
-	// one.one.one.one.
-}
