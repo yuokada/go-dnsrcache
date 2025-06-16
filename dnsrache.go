@@ -14,17 +14,17 @@ type fqdns struct {
 	expires time.Time
 }
 
-// DnsReverseCache is a cache for DNS reverse lookups.
-type DnsReverseCache struct {
+// DNSReverseCache is a cache for DNS reverse lookups.
+type DNSReverseCache struct {
 	sync.RWMutex
 	defaultTTL time.Duration
 	cache      map[string]*fqdns
 	cancel     context.CancelFunc
 }
 
-// NewDnsReverseCache creates a new DnsReverseCache with a default TTL. If TTL <= 0, cache isn't cleared automatically.
-func NewDnsReverseCache(defaultTTL time.Duration) *DnsReverseCache {
-	dcache := &DnsReverseCache{
+// NewDNSReverseCache creates a new DNSReverseCache with a default TTL. If TTL <= 0, cache isn't cleared automatically.
+func NewDNSReverseCache(defaultTTL time.Duration) *DNSReverseCache {
+	dcache := &DNSReverseCache{
 		defaultTTL: defaultTTL,
 		cache:      make(map[string]*fqdns),
 	}
@@ -37,7 +37,7 @@ func NewDnsReverseCache(defaultTTL time.Duration) *DnsReverseCache {
 }
 
 // SetTTL sets a TTL, overwriting the defaultTTL.
-func (d *DnsReverseCache) SetTTL(ttl time.Duration) error {
+func (d *DNSReverseCache) SetTTL(ttl time.Duration) error {
 	if ttl > 0 {
 		d.defaultTTL = ttl
 		return nil
@@ -46,7 +46,7 @@ func (d *DnsReverseCache) SetTTL(ttl time.Duration) error {
 }
 
 // Fetch returns the cached domains for an address or looks them up if expired/missing.
-func (d *DnsReverseCache) Fetch(address string) ([]string, error) {
+func (d *DNSReverseCache) Fetch(address string) ([]string, error) {
 	d.RLock()
 	value, exists := d.cache[address]
 	d.RUnlock()
@@ -60,7 +60,7 @@ func (d *DnsReverseCache) Fetch(address string) ([]string, error) {
 }
 
 // LookupAddr looks up an address, bypassing the cache.
-func (d *DnsReverseCache) LookupAddr(ctx context.Context, address string) ([]string, error) {
+func (d *DNSReverseCache) LookupAddr(ctx context.Context, address string) ([]string, error) {
 	results, err := net.DefaultResolver.LookupAddr(ctx, address)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (d *DnsReverseCache) LookupAddr(ctx context.Context, address string) ([]str
 }
 
 // Refresh removes expired items from the cache.
-func (d *DnsReverseCache) Refresh() {
+func (d *DNSReverseCache) Refresh() {
 	now := time.Now()
 	d.Lock()
 	for key, value := range d.cache {
@@ -88,7 +88,7 @@ func (d *DnsReverseCache) Refresh() {
 }
 
 // autoRefresh periodically calls Refresh at intervals of defaultTTL.
-func (d *DnsReverseCache) autoRefresh(ctx context.Context) {
+func (d *DNSReverseCache) autoRefresh(ctx context.Context) {
 	ticker := time.NewTicker(d.defaultTTL)
 	defer ticker.Stop()
 	for {
@@ -102,7 +102,7 @@ func (d *DnsReverseCache) autoRefresh(ctx context.Context) {
 }
 
 // Close stops the auto-refresh goroutine, if running.
-func (d *DnsReverseCache) Close() {
+func (d *DNSReverseCache) Close() {
 	if d.cancel != nil {
 		d.cancel()
 	}

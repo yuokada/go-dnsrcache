@@ -11,9 +11,9 @@ var defaultDuration = 10 * time.Second
 
 const ExampleAddr = "127.0.0.1"
 
-func TestNewDnsReverseCache(t *testing.T) {
+func TestNewDNSReverseCache(t *testing.T) {
 	t.Run("Default TTL is set correctly", func(t *testing.T) {
-		cache := NewDnsReverseCache(defaultDuration)
+		cache := NewDNSReverseCache(defaultDuration)
 		if cache.defaultTTL != defaultDuration {
 			t.Fatalf("expected defaultTTL %v, got %v", defaultDuration, cache.defaultTTL)
 		}
@@ -32,7 +32,7 @@ func TestFetch(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cache := NewDnsReverseCache(defaultDuration)
+			cache := NewDNSReverseCache(defaultDuration)
 			_, err := cache.Fetch(tt.address)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Fetch() error = %v, wantErr %v", err, tt.wantErr)
@@ -41,9 +41,9 @@ func TestFetch(t *testing.T) {
 	}
 }
 
-func TestDnsReverseCache_AutoRefresh(t *testing.T) {
+func TestDNSReverseCache_AutoRefresh(t *testing.T) {
 	t.Run("Auto-refresh clears expired cache", func(t *testing.T) {
-		cache := NewDnsReverseCache(3 * time.Second)
+		cache := NewDNSReverseCache(3 * time.Second)
 		_, err := cache.Fetch(ExampleAddr)
 		if err != nil {
 			t.Fatalf("Fetch() failed: %v", err)
@@ -61,8 +61,8 @@ func TestDnsReverseCache_AutoRefresh(t *testing.T) {
 
 // Example Test
 
-func ExampleDnsReverseCache_Fetch() {
-	cache := NewDnsReverseCache(10 * time.Millisecond)
+func ExampleDNSReverseCache_Fetch() {
+	cache := NewDNSReverseCache(10 * time.Millisecond)
 	hosts, err := cache.Fetch("127.0.0.1")
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -75,8 +75,8 @@ func ExampleDnsReverseCache_Fetch() {
 	// localhost
 }
 
-func ExampleDnsReverseCache_Fetch_1_1_1_1() {
-	cache := NewDnsReverseCache(10 * time.Millisecond)
+func ExampleDNSReverseCache_Fetch_1_1_1_1() {
+	cache := NewDNSReverseCache(10 * time.Millisecond)
 	hosts, err := cache.Fetch("1.1.1.1")
 	if err != nil {
 		fmt.Println("Error:", err)
