@@ -2,6 +2,7 @@
 package dnsrcache
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"sync"
@@ -13,26 +14,29 @@ type fqdns struct {
 	expires time.Time
 }
 
-// DNSCache is Cache struct
+// DNSCache is a cache for DNS reverse lookups.
 type DNSCache struct {
 	sync.RWMutex
 	defaultTTL time.Duration
 	cache      map[string]*fqdns
+	cancel     context.CancelFunc
 }
 
-// NewDNSCache : New DNSCache struct with TTL (if TTL <= 0, cache isn't clear)
+// NewDNSCache creates a new DNSCache with a default TTL. If TTL <= 0, cache isn't cleared automatically.
 func NewDNSCache(defaultTTL time.Duration) *DNSCache {
 	dcache := &DNSCache{
 		defaultTTL: defaultTTL,
 		cache:      make(map[string]*fqdns),
 	}
 	if defaultTTL > 0 {
-		go dcache.autoRefresh()
+		ctx, cancel := context.WithCancel(context.Background())
+		dcache.cancel = cancel
+		go dcache.autoRefresh(ctx)
 	}
 	return dcache
 }
 
-// SetTTL : Set a TTL, overwriting the defaultTTL
+// SetTTL sets a TTL, overwriting the defaultTTL.
 func (d *DNSCache) SetTTL(ttl time.Duration) error {
 	if ttl > 0 {
 		d.defaultTTL = ttl
@@ -41,7 +45,7 @@ func (d *DNSCache) SetTTL(ttl time.Duration) error {
 	return fmt.Errorf("invalid ttl. ttl wasn't set")
 }
 
-// Fetch : Get all of the addresses' ips
+// Fetch returns the cached domains for an address or looks them up if expired/missing.
 func (d *DNSCache) Fetch(address string) ([]string, error) {
 	d.RLock()
 	value, exists := d.cache[address]
@@ -52,17 +56,15 @@ func (d *DNSCache) Fetch(address string) ([]string, error) {
 			return value.domains, nil
 		}
 	}
-
-	return d.LookupAddr(address)
+	return d.LookupAddr(context.Background(), address)
 }
 
-// LookupAddr : Lookup an address' ip, circumventing the cache
-func (d *DNSCache) LookupAddr(address string) ([]string, error) {
-	results, err := net.LookupAddr(address)
+// LookupAddr looks up an address, bypassing the cache.
+func (d *DNSCache) LookupAddr(ctx context.Context, address string) ([]string, error) {
+	results, err := net.DefaultResolver.LookupAddr(ctx, address)
 	if err != nil {
 		return nil, err
 	}
-
 	expires := time.Now().Add(d.defaultTTL)
 	d.Lock()
 	d.cache[address] = &fqdns{
@@ -73,24 +75,35 @@ func (d *DNSCache) LookupAddr(address string) ([]string, error) {
 	return results, nil
 }
 
-// Refresh : Remove expired items (called automatically)
+// Refresh removes expired items from the cache.
 func (d *DNSCache) Refresh() {
 	now := time.Now()
-	d.RLock()
+	d.Lock()
 	for key, value := range d.cache {
 		if value.expires.Before(now) {
 			delete(d.cache, key)
 		}
 	}
-	d.RUnlock()
+	d.Unlock()
 }
 
-func (d *DNSCache) autoRefresh() {
+// autoRefresh periodically calls Refresh at intervals of defaultTTL.
+func (d *DNSCache) autoRefresh(ctx context.Context) {
+	ticker := time.NewTicker(d.defaultTTL)
+	defer ticker.Stop()
 	for {
 		select {
-		case <-time.After(d.defaultTTL):
-			// defaultTTLでRefresh()させる
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
 			d.Refresh()
 		}
+	}
+}
+
+// Close stops the auto-refresh goroutine, if running.
+func (d *DNSCache) Close() {
+	if d.cancel != nil {
+		d.cancel()
 	}
 }
