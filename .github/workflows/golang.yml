@@ -19,14 +19,14 @@ jobs:
       with:
         go-version: 1.23
 
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/go-build
-          # Uncomment next line if you use Go modules
-          # ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+    # - name: Cache Go modules
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: |
+    #       ~/.cache/go-build
+    #       # Uncomment next line if you use Go modules
+    #       # ~/go/pkg/mod
+    #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
     - name: Install dependencies
       run: go mod download
