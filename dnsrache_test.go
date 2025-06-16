@@ -62,16 +62,29 @@ func TestDnsReverseCache_AutoRefresh(t *testing.T) {
 // Example Test
 
 func ExampleDnsReverseCache_Fetch() {
-	ttl := 10 * time.Millisecond
-	cache := NewDnsReverseCache(ttl)
-	hosts, err := cache.Fetch(ExampleAddr)
+	cache := NewDnsReverseCache(10 * time.Millisecond)
+	hosts, err := cache.Fetch("127.0.0.1")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 	time.Sleep(100 * time.Millisecond)
-	hosts, _ = cache.Fetch(ExampleAddr)
+	hosts, _ = cache.Fetch("127.0.0.1")
 	fmt.Println(hosts[0])
 	// Output:
 	// localhost
+}
+
+func ExampleDnsReverseCache_Fetch_1_1_1_1() {
+	cache := NewDnsReverseCache(10 * time.Millisecond)
+	hosts, err := cache.Fetch("1.1.1.1")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	time.Sleep(100 * time.Millisecond)
+	hosts, _ = cache.Fetch("1.1.1.1")
+	fmt.Println(hosts[0])
+	// Output:
+	// one.one.one.one.
 }
